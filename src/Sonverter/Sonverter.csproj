@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Sonverter</RootNamespace>
+    <AssemblyName>Sonverter</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Native AOT：固定时区/文化，减小体积并避免依赖 ICU -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <StripSymbolsDuringPublish>true</StripSymbolsDuringPublish>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="template.json" />
+    <!-- 前端资源编译进二进制（单文件部署，不依赖外部 wwwroot 目录） -->
+    <EmbeddedResource Include="wwwroot\**\*" />
+    <Content Update="wwwroot\**\*" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+    <Content Update="template.json" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
+</Project>

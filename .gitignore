@@ -1,0 +1,46 @@
+# .NET
+bin/
+obj/
+*.user
+dist/
+dist-self-contained/
+
+# 原 Python 版项目（保留参考，不纳入版本控制）
+cuddly-winner/
+
+# 代理工作目录（本机环境挂载，不提交）
+.agents/
+.codex/
+
+# 前端
+web/node_modules/
+web/dist/
+
+# 生成的输出文件
+*_converted.json
+
+# IDE 与系统文件
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+*.log
+
+# 敏感/凭据类文件（防御性规则）
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+credentials
+*.secret
+
+.env
+.env.local

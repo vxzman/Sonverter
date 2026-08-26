@@ -1,0 +1,22 @@
+[Unit]
+Description=Sonverter - Singbox 出口节点转换工具 Web 服务
+After=network.target
+
+[Service]
+Type=simple
+User=%USER%
+Group=%GROUP%
+WorkingDirectory=%INSTALL_DIR%
+ExecStart=%INSTALL_DIR%/Sonverter --serve --port %PORT%
+Restart=on-failure
+RestartSec=5
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sonverter
+
+[Install]
+WantedBy=multi-user.target
