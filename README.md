@@ -30,13 +30,20 @@ cd ..
 ## 3. 编译 Native AOT 二进制
 
 ```bash
-./publish.sh       # 产物：dist/Sonverter（单文件，约 16MB）
+./publish.sh --version 1.0.1       # 产物：dist/Sonverter（单文件，约 16MB）
 ```
 
 等价手动命令：
 
 ```bash
 dotnet publish src/Sonverter -c Release -r linux-x64 -p:PublishAot=true -o dist
+```
+
+发布脚本会把版本号写入程序集和二进制元数据：
+
+```bash
+./publish.sh --version 1.0.1
+./publish.sh --version 1.1.0-beta.1
 ```
 
 ## 4. 部署到服务器
@@ -77,10 +84,40 @@ curl http://localhost:8080/api/health   # 期望：{"status":"ok"}
 ## 命令行用法
 
 ```bash
-./Sonverter --input nodes.json                    # 转换节点文件
+./Sonverter --version                         # 显示版本与编译信息
+./Sonverter --input nodes.json                    # 转换节点文件（singbox）
+./Sonverter --input nodes.txt --converter dae     # 订阅 URL 列表转 dae node 配置
 ./Sonverter --input nodes.json --output out.json  # 指定输出
 ./Sonverter --list-converters                     # 列出转换器
 ```
+
+### 版本规划
+
+项目版本遵循语义化版本（Semantic Versioning）`MAJOR.MINOR.PATCH`：
+
+- `MAJOR`：不兼容的命令行参数、配置格式或输出格式变更
+- `MINOR`：向后兼容的新功能或新转换器
+- `PATCH`：向后兼容的问题修复、性能优化和文档更新
+
+当前版本为 `1.0.1`。预发布版本使用 `-alpha.N`、`-beta.N` 或 `-rc.N` 后缀，例如 `1.1.0-beta.1`。
+
+`--version` 会显示版本号、UTC 编译时间、.NET 版本、运行时、操作系统、平台架构和进程架构。Web 服务同时提供 `GET /api/version`。
+
+### dae 转换器
+
+输入为每行一个订阅 URL 的 `.txt` 文件（`协议://具体配置#备注`），输出 `node { tag: "url" #备注 }`：
+
+```
+node {
+    # HTTPS/VMess/VLESS/Shadowsocks/Trojan/Tuic/Juicity/Hysteria2 等格式
+    hk-hy2-02: "hysteria2://user:password@host:20399/?insecure=0" #HK2-HY2
+    other-vless-01: "vless://..." #CF电信优选1
+}
+```
+
+- tag 规则：`国家简写-协议简写-序号`（如 `hk-hy2-02`），国家信息取自备注开头，提取不到时用 `other`（如 `other-vless-01`）
+- 序号优先取备注中的数字，取不到时按同组递增，序号固定两位数
+- dae 的 tag 只支持英文，URL 中的中文/emoji 备注会解码后作为行尾注释保留
 
 ## 许可证
 

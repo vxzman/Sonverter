@@ -23,6 +23,7 @@ public class SingboxConverter : BaseConverter
 
     private readonly Dictionary<string, string> _countryMap = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<string> _sortedKeys = new();
+    private readonly List<(string Name, string Label)> _countryNames = new();
     private readonly List<string> _selectList = new();
     private readonly List<string> _orderedLabels = new();
     private readonly string _hkUrl;
@@ -37,11 +38,25 @@ public class SingboxConverter : BaseConverter
             foreach (var (key, value) in countryMap)
                 if (value is JsonValue v && v.TryGetValue<string>(out var label))
                     _countryMap[key] = label;
+
+            // 节点 tag 也常使用“🇭🇰 香港 01”这类中文名称，而不是 HK 代码。
+            // 同时支持配置中的完整名称及“中国香港”这类名称的简写。
+            foreach (var label in _countryMap.Values.Distinct(StringComparer.Ordinal))
+            {
+                var name = Regex.Replace(label, "[^一-鿿]", "");
+                if (name.Length == 0)
+                    continue;
+
+                AddCountryName(name, label);
+                if (name.StartsWith("中国", StringComparison.Ordinal) && name.Length > 2)
+                    AddCountryName(name[2..], label);
+            }
         }
 
         _sortedKeys = _countryMap.Keys
             .OrderByDescending(k => k.Length)
             .ToList();
+        _countryNames.Sort((a, b) => b.Name.Length.CompareTo(a.Name.Length));
 
         if (Config["select_list"] is JsonArray selectList)
             _selectList = selectList
@@ -62,6 +77,14 @@ public class SingboxConverter : BaseConverter
     private string GetString(string key, string fallback)
         => Config[key] is JsonValue v && v.TryGetValue<string>(out var s) ? s : fallback;
 
+    private void AddCountryName(string name, string label)
+    {
+        if (_countryNames.Any(x => x.Name.Equals(name, StringComparison.Ordinal)
+                                   && x.Label.Equals(label, StringComparison.Ordinal)))
+            return;
+        _countryNames.Add((name, label));
+    }
+
     /// <summary>从 tag 中检测国家/地区，返回 emoji+名称（找不到时返回其他国家）。</summary>
     private string DetectCountry(string tag)
     {
@@ -77,7 +100,13 @@ public class SingboxConverter : BaseConverter
                 return _otherTag;
         }
 
-        // 策略 1：优先匹配 tag 开头的国家代码
+        // 策略 1：匹配中文国家/地区名称（兼容 emoji 和名称之间的空格）。
+        var chineseTag = Regex.Replace(tag, "[^一-鿿]", "");
+        foreach (var (name, label) in _countryNames)
+            if (chineseTag.Contains(name, StringComparison.Ordinal))
+                return label;
+
+        // 策略 2：优先匹配 tag 开头的国家代码
         foreach (var key in _sortedKeys)
         {
             if (up.StartsWith(key + "-", StringComparison.Ordinal)
@@ -86,7 +115,7 @@ public class SingboxConverter : BaseConverter
                 return _countryMap[key];
         }
 
-        // 策略 2：匹配完整的单词
+        // 策略 3：匹配完整的单词
         foreach (var key in _sortedKeys)
         {
             if (ExcludeWords.Contains(key))
@@ -96,7 +125,7 @@ public class SingboxConverter : BaseConverter
                 return _countryMap[key];
         }
 
-        // 策略 3：子字符串匹配
+        // 策略 4：子字符串匹配
         foreach (var key in _sortedKeys)
         {
             if (ExcludeWords.Contains(key))

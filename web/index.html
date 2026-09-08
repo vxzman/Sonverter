@@ -3,197 +3,371 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sonverter - Singbox 出口节点转换工具</title>
+  <title>Sonverter - 出口节点转换工具</title>
   <style>
+    :root {
+      /* 浅色主题 (WinUI Mica) */
+      --bg-mica: linear-gradient(135deg, #e8f0fe 0%, #f3f3f3 100%);
+      --card-bg: rgba(255, 255, 255, 0.65);
+      --card-border: rgba(0, 0, 0, 0.06);
+      --text-main: #1a1a1a;
+      --text-sub: #5c5c5c;
+      --accent: #0067c0;
+      --accent-hover: #005a9e;
+      --nav-hover: rgba(0, 0, 0, 0.05);
+      --nav-active: rgba(0, 103, 192, 0.15);
+      --drop-bg: rgba(255, 255, 255, 0.4);
+      --drop-border: rgba(0, 0, 0, 0.15);
+      --code-bg: #f8f8f8;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      --success: #107c10;
+      --danger-text: #c42b1c;
+      --danger-bg: rgba(196, 43, 28, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg-mica: linear-gradient(135deg, #1a2a3a 0%, #202020 100%);
+      --card-bg: rgba(40, 40, 40, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #ffffff;
+      --text-sub: #c0c0c0;
+      --accent: #60cdff;
+      --accent-hover: #4db8e8;
+      --nav-hover: rgba(255, 255, 255, 0.08);
+      --nav-active: rgba(96, 205, 255, 0.15);
+      --drop-bg: rgba(255, 255, 255, 0.05);
+      --drop-border: rgba(255, 255, 255, 0.15);
+      --code-bg: #1e1e1e;
+      --shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+      --success: #6ee06e;
+      --danger-text: #f1707b;
+      --danger-bg: rgba(241, 112, 123, 0.12);
+    }
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--bg-mica);
+      background-attachment: fixed;
+      color: var(--text-main);
       min-height: 100vh;
-      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* 标题栏 */
+    .title-bar {
+      height: 52px;
+      background: var(--card-bg);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border-bottom: 1px solid var(--card-border);
       display: flex;
-      justify-content: center;
       align-items: center;
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow);
     }
 
-    .container {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      padding: 40px;
-      max-width: 700px;
-      width: 100%;
+    .title-bar h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
     }
 
-    h1 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 10px;
-      font-size: 24px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #666;
-      margin-bottom: 30px;
-      font-size: 14px;
-    }
-
-    .upload-area {
-      border: 2px dashed #667eea;
-      border-radius: 12px;
-      padding: 40px 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      background: #f8f9ff;
-    }
-
-    .upload-area:hover {
-      border-color: #764ba2;
-      background: #f0f2ff;
-    }
-
-    .upload-area.dragover {
-      border-color: #764ba2;
-      background: #e8ebff;
-    }
-
-    .upload-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
-    }
-
-    .upload-text {
-      color: #667eea;
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
-
-    .upload-hint {
-      color: #999;
+    .title-bar .sub {
       font-size: 13px;
+      color: var(--text-sub);
+      margin-left: 8px;
+      font-weight: 400;
     }
 
-    #fileInput {
-      display: none;
+    .theme-btn {
+      margin-left: auto;
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: 0.2s;
+    }
+
+    .theme-btn:hover {
+      background: var(--nav-hover);
+    }
+
+    /* 布局 */
+    .container {
+      display: flex;
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 24px;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow);
+      height: fit-content;
+    }
+
+    .nav-item {
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 4px;
+      font-size: 14px;
+      transition: 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      border: none;
+      background: transparent;
+      text-align: left;
+      width: 100%;
+      font-family: inherit;
+      color: var(--text-main);
+    }
+
+    .nav-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .nav-item .desc {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .nav-item:hover {
+      background: var(--nav-hover);
+    }
+
+    .nav-item.active {
+      background: var(--nav-active);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .nav-item.active .desc {
+      color: var(--accent);
+    }
+
+    /* 内容区 */
+    .content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--card-border);
+      margin-bottom: 20px;
+      transition: transform 0.2s;
+    }
+
+    .card h2 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .card .sub-title {
+      color: var(--text-sub);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    /* 拖拽区 */
+    .drop-zone {
+      border: 2px dashed var(--drop-border);
+      border-radius: 10px;
+      padding: 32px;
+      text-align: center;
+      background: var(--drop-bg);
+      cursor: pointer;
+      transition: 0.2s;
+      margin-bottom: 20px;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: var(--accent);
+      background: var(--nav-active);
+    }
+
+    .drop-zone .icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+      opacity: 0.7;
+    }
+
+    .drop-zone p {
+      font-size: 14px;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .drop-zone span {
+      font-size: 12px;
+      color: var(--text-sub);
     }
 
     .file-info {
-      margin-top: 20px;
-      padding: 15px;
-      background: #f0f2ff;
-      border-radius: 8px;
       display: none;
-    }
-
-    .file-info.show {
-      display: block;
-    }
-
-    .file-name {
-      color: #333;
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-
-    .file-size {
-      color: #666;
-      font-size: 13px;
-    }
-
-    .convert-btn {
-      width: 100%;
-      padding: 15px;
-      margin-top: 25px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--nav-active);
       border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .convert-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-    }
-
-    .convert-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .result-area {
-      margin-top: 25px;
-      padding: 20px;
-      background: #f8f9ff;
-      border-radius: 8px;
-      display: none;
-    }
-
-    .result-area.show {
-      display: block;
-    }
-
-    .result-title {
-      color: #333;
-      font-weight: 600;
-      margin-bottom: 15px;
-      text-align: center;
-    }
-
-    .download-btns {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .download-btn {
-      padding: 12px 20px;
-      background: white;
-      color: #667eea;
-      border: 2px solid #667eea;
-      border-radius: 8px;
+      margin-bottom: 20px;
       font-size: 14px;
-      font-weight: 600;
+    }
+
+    .file-info .file-size {
+      color: var(--text-sub);
+      font-size: 12px;
+    }
+
+    .file-info .remove {
+      color: var(--accent);
       cursor: pointer;
-      transition: all 0.2s ease;
-      text-decoration: none;
-      text-align: center;
-      display: flex;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .file-info .remove:hover {
+      text-decoration: underline;
+    }
+
+    /* 按钮 */
+    .btn {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
+      height: 36px;
+      padding: 0 20px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      font-family: inherit;
+      color: var(--text-main);
     }
 
-    .download-btn:hover {
-      background: #667eea;
-      color: white;
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
     }
 
-    .stats {
-      margin-top: 15px;
-      padding: 15px;
-      background: white;
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--nav-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* 错误提示 */
+    .error-msg {
+      display: none;
+      margin-bottom: 16px;
+      padding: 10px 14px;
       border-radius: 8px;
+      background: var(--danger-bg);
+      color: var(--danger-text);
       font-size: 13px;
-      color: #666;
+    }
+
+    .error-msg.show {
+      display: block;
+    }
+
+    /* 结果区 */
+    .result-box {
+      display: none;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .status {
+      color: var(--success);
+      font-size: 14px;
+      font-weight: 500;
+      margin-right: auto;
+    }
+
+    .code-area {
+      display: none;
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 13px;
+      color: var(--text-main);
+      max-height: 240px;
+      overflow-y: auto;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* 统计信息 */
+    .stats {
+      margin-top: 8px;
+      font-size: 13px;
     }
 
     .stats-row {
       display: flex;
       justify-content: space-between;
-      padding: 5px 0;
-      border-bottom: 1px solid #f0f0f0;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--card-border);
     }
 
     .stats-row:last-child {
@@ -201,59 +375,104 @@
     }
 
     .stats-label {
-      color: #999;
+      color: var(--text-sub);
     }
 
     .stats-value {
-      color: #333;
-      font-weight: 600;
+      color: var(--text-main);
+      font-weight: 500;
     }
 
-    .error-msg {
-      color: #e74c3c;
-      background: #fdeaea;
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 15px;
-      font-size: 14px;
-      display: none;
-    }
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
 
-    .error-msg.show {
-      display: block;
+      .sidebar {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="title-bar">
+    <h1>Sonverter <span class="sub">出口节点转换工具</span></h1>
+    <button class="theme-btn" id="themeBtn" type="button">🌗 切换主题</button>
+  </div>
+
   <div class="container">
-    <h1>🌍 Sonverter · Singbox 出口节点转换工具</h1>
-    <p class="subtitle">添加 emoji 前缀 · 按国家/地区分组</p>
+    <div class="sidebar" id="sidebar">
+      <button class="nav-item active" data-converter="singbox" type="button">
+        singbox
+        <span class="desc">Singbox 节点转换</span>
+      </button>
+      <button class="nav-item" data-converter="dae" type="button">
+        dae
+        <span class="desc">dae 节点转换</span>
+      </button>
+    </div>
 
-    <div id="singbox-content">
-      <div class="upload-area" id="uploadArea">
-        <div class="upload-icon">📁</div>
-        <div class="upload-text">点击选择文件或拖拽文件到此处</div>
-        <div class="upload-hint">支持 JSON 格式的节点配置文件</div>
-        <input type="file" id="fileInput" accept=".json">
-      </div>
+    <div class="content">
+      <!-- Singbox 视图 -->
+      <div class="card" id="view-singbox">
+        <h2>Singbox 节点转换</h2>
+        <div class="sub-title">添加 emoji 前缀并按国家/地区分组</div>
 
-      <div class="file-info" id="fileInfo">
-        <div class="file-name" id="fileName"></div>
-        <div class="file-size" id="fileSize"></div>
-      </div>
-
-      <div class="error-msg" id="errorMsg"></div>
-
-      <button class="convert-btn" id="convertBtn" disabled>开始转换</button>
-
-      <div class="result-area" id="resultArea">
-        <div class="result-title">✅ 转换完成</div>
-        <div class="download-btns">
-          <a class="download-btn" id="downloadConverted" download>
-            💾 下载转换结果
-          </a>
+        <div class="drop-zone" id="drop-singbox" tabindex="0">
+          <div class="icon">📁</div>
+          <p>点击选择文件或拖拽文件到此处</p>
+          <span>支持 .json 格式的文件</span>
         </div>
-        <div class="stats" id="stats"></div>
+        <input type="file" id="file-input-singbox" style="display:none" accept=".json">
+
+        <div class="file-info" id="file-info-singbox">
+          <div>📄 <span id="file-name-singbox"></span> <span class="file-size" id="file-size-singbox"></span></div>
+          <span class="remove" id="remove-singbox">移除文件</span>
+        </div>
+
+        <div class="error-msg" id="error-singbox"></div>
+
+        <button class="btn btn-primary" id="convert-singbox" type="button" disabled>开始转换</button>
+
+        <div class="result-box" id="result-singbox">
+          <div class="result-header">
+            <span class="status" id="status-singbox"></span>
+            <button class="btn btn-secondary" id="download-singbox" type="button">📥 下载结果</button>
+            <button class="btn btn-secondary" id="copy-singbox" type="button">📋 复制内容</button>
+          </div>
+          <div class="stats" id="stats-singbox"></div>
+        </div>
+      </div>
+
+      <!-- dae 视图 -->
+      <div class="card" id="view-dae" style="display:none;">
+        <h2>dae 节点转换</h2>
+        <div class="sub-title">订阅 URL 列表转 node 配置（英文 tag + 备注注释）</div>
+
+        <div class="drop-zone" id="drop-dae" tabindex="0">
+          <div class="icon">📁</div>
+          <p>点击选择文件或拖拽文件到此处</p>
+          <span>支持 .txt 格式的文件</span>
+        </div>
+        <input type="file" id="file-input-dae" style="display:none" accept=".txt">
+
+        <div class="file-info" id="file-info-dae">
+          <div>📄 <span id="file-name-dae"></span> <span class="file-size" id="file-size-dae"></span></div>
+          <span class="remove" id="remove-dae">移除文件</span>
+        </div>
+
+        <div class="error-msg" id="error-dae"></div>
+
+        <button class="btn btn-primary" id="convert-dae" type="button" disabled>开始转换</button>
+
+        <div class="result-box" id="result-dae">
+          <div class="result-header">
+            <span class="status" id="status-dae"></span>
+            <button class="btn btn-secondary" id="download-dae" type="button">📥 下载结果</button>
+            <button class="btn btn-secondary" id="copy-dae" type="button">📋 复制内容</button>
+          </div>
+          <div class="code-area" id="code-dae"></div>
+        </div>
       </div>
     </div>
   </div>

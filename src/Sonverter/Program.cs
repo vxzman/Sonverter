@@ -6,6 +6,7 @@ using Sonverter.Converters;
 
 // 注册转换器
 ConverterRegistry.Register(config => new SingboxConverter(config));
+ConverterRegistry.Register(config => new DaeConverter(config));
 ConverterRegistry.Register(config => new ExampleConverter(config));
 
 var cliArgs = new CommandLineArgs(Environment.GetCommandLineArgs().Skip(1).ToArray());
@@ -13,6 +14,12 @@ var cliArgs = new CommandLineArgs(Environment.GetCommandLineArgs().Skip(1).ToArr
 if (cliArgs.Help)
 {
     PrintHelp();
+    return;
+}
+
+if (cliArgs.Version)
+{
+    VersionInfo.Print();
     return;
 }
 
@@ -63,17 +70,19 @@ static void PrintHelp()
 
         用法:
           --input, -i <文件>        输入文件
-          --converter, -c <名称>    转换器名称 (默认: singbox, 可用: singbox, example)
+          --converter, -c <名称>    转换器名称 (默认: singbox, 可用: singbox, dae, example)
           --output, -o <文件>       输出文件路径
           --config, -f <文件>       配置文件 (默认: template.json)
           --serve                   启动 Web 服务
           --port, -p <端口>         Web 服务端口 (默认: 8080)
           --debug                   调试模式
+          --version, -v             显示版本与编译信息
           --list-converters         列出所有可用的转换器
           --help, -h                显示帮助
 
         示例:
           dotnet run -- --input input_example.json
+          dotnet run -- --input nodes.txt --converter dae
           dotnet run -- --serve --port 8080
         """);
 }
@@ -102,6 +111,18 @@ static async Task RunServerAsync(int port, bool debug, string? configPath)
 
     app.MapGet("/api/health", () =>
         Results.Text(JsonHelper.Serialize(new JsonObject { ["status"] = "ok" }), "application/json"));
+
+    app.MapGet("/api/version", () =>
+        Results.Text(JsonHelper.Serialize(new JsonObject
+        {
+            ["name"] = VersionInfo.ProductName,
+            ["version"] = VersionInfo.Version,
+            ["build_time"] = VersionInfo.BuildTimestamp,
+            ["dotnet"] = VersionInfo.DotnetVersion,
+            ["runtime"] = VersionInfo.Runtime,
+            ["platform"] = VersionInfo.Platform,
+            ["process_architecture"] = VersionInfo.ProcessArchitecture,
+        }), "application/json"));
 
     app.MapGet("/api/converters", () =>
     {
@@ -139,20 +160,64 @@ static async Task RunServerAsync(int port, bool debug, string? configPath)
                     "application/json",
                     statusCode: StatusCodes.Status400BadRequest);
 
-            var converter = ConverterRegistry.Get("singbox", config);
-            var result = converter.Convert(jsonObject);
-
-            var successResponse = new JsonObject
+            // 请求格式：{ "converter": "singbox|dae", "data": ... }
+            // 兼容旧格式：没有 converter 字段时整个 body 视为 singbox 数据
+            var converterName = "singbox";
+            var payload = (JsonNode)jsonObject;
+            if (jsonObject["converter"] is JsonValue converterValue
+                && converterValue.TryGetValue<string>(out var name)
+                && !string.IsNullOrEmpty(name))
             {
-                ["success"] = true,
-                ["data"] = (JsonNode)result,
-            };
+                converterName = name;
+                if (jsonObject["data"] is JsonNode dataNode)
+                    payload = dataNode;
+                else
+                    return Results.Text(
+                        JsonHelper.Serialize(new JsonObject { ["success"] = false, ["error"] = "缺少 data 字段" }),
+                        "application/json",
+                        statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var converter = ConverterRegistry.Get(converterName, config);
+            var result = converter.Convert(payload);
+
+            var successResponse = new JsonObject { ["success"] = true };
+            if (result is string text)
+            {
+                // 文本类转换器（如 dae）：直接返回配置文本
+                successResponse["format"] = "text";
+                successResponse["data"] = text;
+            }
+            else if (result is JsonNode resultNode)
+            {
+                successResponse["format"] = "json";
+                successResponse["data"] = resultNode;
+            }
+            else
+            {
+                return Results.Text(
+                    JsonHelper.Serialize(new JsonObject
+                    {
+                        ["success"] = false,
+                        ["error"] = $"转换器 {converterName} 返回了不支持的结果类型",
+                    }),
+                    "application/json",
+                    statusCode: StatusCodes.Status500InternalServerError);
+            }
+
             return Results.Text(JsonHelper.Serialize(successResponse), "application/json");
         }
         catch (System.Text.Json.JsonException)
         {
             return Results.Text(
                 JsonHelper.Serialize(new JsonObject { ["success"] = false, ["error"] = "JSON 解析失败" }),
+                "application/json",
+                statusCode: StatusCodes.Status400BadRequest);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return Results.Text(
+                JsonHelper.Serialize(new JsonObject { ["success"] = false, ["error"] = e.Message }),
                 "application/json",
                 statusCode: StatusCodes.Status400BadRequest);
         }
@@ -166,6 +231,8 @@ static async Task RunServerAsync(int port, bool debug, string? configPath)
     });
 
     Console.WriteLine("🚀 启动 Web 服务器...");
+    Console.WriteLine($"📦 Version: {VersionInfo.Version} | Build time: {VersionInfo.BuildTimestamp}");
+    Console.WriteLine($"🧩 .NET: {VersionInfo.DotnetVersion} | Platform: {VersionInfo.Platform}");
     Console.WriteLine($"📡 访问地址：http://localhost:{port}");
     Console.WriteLine($"📁 资源目录：{AppContext.BaseDirectory}");
     Console.WriteLine($"🔧 可用转换器：{string.Join(", ", ConverterRegistry.ListNames())}");
@@ -184,6 +251,7 @@ internal sealed class CommandLineArgs
     public bool Serve { get; private set; }
     public int Port { get; private set; } = 8080;
     public bool Debug { get; private set; }
+    public bool Version { get; private set; }
     public bool ListConverters { get; private set; }
     public bool Help { get; private set; }
 
@@ -207,6 +275,9 @@ internal sealed class CommandLineArgs
                     break;
                 case "--debug":
                     Debug = true;
+                    break;
+                case "-v" or "--version":
+                    Version = true;
                     break;
                 case "-i" or "--input":
                     Input = inlineValue ?? NextValue(args, ref i, name);
