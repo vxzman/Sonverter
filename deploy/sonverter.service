@@ -1,5 +1,5 @@
 [Unit]
-Description=Sonverter - Singbox 出口节点转换工具 Web 服务
+Description=Sonverter - Singbox Outbound Node Conversion Tool
 After=network.target
 
 [Service]
@@ -7,7 +7,7 @@ Type=simple
 User=%USER%
 Group=%GROUP%
 WorkingDirectory=%INSTALL_DIR%
-ExecStart=%INSTALL_DIR%/Sonverter --serve --port %PORT%
+ExecStart=%INSTALL_DIR%/Sonverter --serve --port %PORT% --workdir %INSTALL_DIR%
 Restart=on-failure
 RestartSec=5
 

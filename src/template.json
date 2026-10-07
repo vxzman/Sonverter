@@ -1,0 +1,290 @@
+{
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🌐全局代理",
+      "outbounds": [
+        "🎯节点选择",
+        "🛡️故障转移",
+        "🚀高倍率",
+        "🍃低倍率",
+        "🤖人工智能",
+        "🎬视频媒体",
+        "🇭🇰中国香港",
+        "🇯🇵日本",
+        "🇹🇼中国台湾",
+        "🇸🇬新加坡",
+        "🇺🇸美国",
+        "🇰🇷韩国",
+        "🇦🇺澳大利亚",
+        "🇩🇪德国",
+        "🇬🇧英国",
+        "🇫🇷法国",
+        "🇨🇦加拿大",
+        "🇹🇷土耳其",
+        "🌐直连"
+      ],
+      "default": "🎯节点选择"
+    },
+    {
+      "type": "selector",
+      "tag": "🎯节点选择",
+      "outbounds": [
+        "🇭🇰中国香港",
+        "🇯🇵日本",
+        "🇹🇼中国台湾",
+        "🇸🇬新加坡",
+        "🇺🇸美国",
+        "🇰🇷韩国",
+        "🇦🇺澳大利亚",
+        "🇩🇪德国",
+        "🇬🇧英国",
+        "🇫🇷法国",
+        "🇨🇦加拿大",
+        "🇹🇷土耳其",
+        "🛡️故障转移",
+        "🚀高倍率",
+        "🍃低倍率",
+        "🌐直连"
+      ],
+      "default": "🇭🇰中国香港"
+    },
+    {
+      "type": "urltest",
+      "tag": "🛡️故障转移",
+      "outbounds": [
+        "🇭🇰中国香港",
+        "🇯🇵日本",
+        "🇹🇼中国台湾",
+        "🇸🇬新加坡",
+        "🇺🇸美国",
+        "🇰🇷韩国",
+        "🇦🇺澳大利亚",
+        "🇩🇪德国",
+        "🇬🇧英国",
+        "🇫🇷法国",
+        "🇨🇦加拿大",
+        "🇹🇷土耳其",
+        "🚀高倍率",
+        "🍃低倍率",
+        "🌐直连"
+      ],
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "5m",
+      "idle_timeout": "30m",
+      "fallback": {
+        "enabled": true
+      }
+    },
+    {
+      "type": "selector",
+      "tag": "🤖人工智能",
+      "outbounds": [
+        "🇺🇸美国",
+        "🇯🇵日本",
+        "🇸🇬新加坡",
+        "🇰🇷韩国",
+        "🎯节点选择",
+        "🛡️故障转移",
+        "🚀高倍率",
+        "🍃低倍率",
+        "🌐直连"
+      ],
+      "default": "🇺🇸美国"
+    },
+    {
+      "type": "selector",
+      "tag": "🎬视频媒体",
+      "outbounds": [
+        "🎯节点选择",
+        "🛡️故障转移",
+        "🚀高倍率",
+        "🍃低倍率",
+        "🇭🇰中国香港",
+        "🇯🇵日本",
+        "🇹🇼中国台湾",
+        "🇸🇬新加坡",
+        "🇺🇸美国",
+        "🇰🇷韩国",
+        "🇦🇺澳大利亚",
+        "🇩🇪德国",
+        "🇬🇧英国",
+        "🇫🇷法国",
+        "🇨🇦加拿大",
+        "🇹🇷土耳其",
+        "🌐直连"
+      ],
+      "default": "🎯节点选择"
+    },
+    {
+      "type": "selector",
+      "tag": "⛳漏网之鱼",
+      "outbounds": [
+        "🎯节点选择",
+        "🛡️故障转移",
+        "🚀高倍率",
+        "🍃低倍率",
+        "🇭🇰中国香港",
+        "🇯🇵日本",
+        "🇹🇼中国台湾",
+        "🇸🇬新加坡",
+        "🇺🇸美国",
+        "🇰🇷韩国",
+        "🇦🇺澳大利亚",
+        "🇩🇪德国",
+        "🇬🇧英国",
+        "🇫🇷法国",
+        "🇨🇦加拿大",
+        "🇹🇷土耳其",
+        "🌐直连"
+      ],
+      "default": "🎯节点选择"
+    },
+    {
+      "type": "urltest",
+      "tag": "🚀高倍率",
+      "include": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🍃低倍率",
+      "include": "(?i)0\\.\\d+\\s*(?:x|倍)|低倍",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🇭🇰中国香港",
+      "include": "(?i)🇭🇰|HK|Hong\\s*Kong|香港",
+      "exclude": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🇯🇵日本",
+      "include": "(?i)🇯🇵|JP|Japan|日本|东京|大阪",
+      "exclude": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🇹🇼中国台湾",
+      "include": "(?i)🇹🇼|TW|Taiwan|台湾|台北",
+      "exclude": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🇸🇬新加坡",
+      "include": "(?i)🇸🇬|SG|Singapore|新加坡|狮城",
+      "exclude": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🇺🇸美国",
+      "include": "(?i)🇺🇸|US|USA|America|United\\s*States|美国|洛杉矶|硅谷|波特兰|西雅图|芝加哥",
+      "exclude": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🇰🇷韩国",
+      "include": "(?i)🇰🇷|KR|Korea|韩国|首尔",
+      "exclude": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🇦🇺澳大利亚",
+      "include": "(?i)🇦🇺|AU|Australia|澳大利亚|澳洲|悉尼|墨尔本",
+      "exclude": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🇩🇪德国",
+      "include": "(?i)🇩🇪|DE|Germany|德国|法兰克福",
+      "exclude": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🇬🇧英国",
+      "include": "(?i)🇬🇧|UK|GB|Britain|England|United\\s*Kingdom|英国|伦敦",
+      "exclude": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🇫🇷法国",
+      "include": "(?i)🇫🇷|FR|France|法国|巴黎",
+      "exclude": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🇨🇦加拿大",
+      "include": "(?i)🇨🇦|CA|Canada|加拿大|温哥华|多伦多",
+      "exclude": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "urltest",
+      "tag": "🇹🇷土耳其",
+      "include": "(?i)🇹🇷|TR|Turkey|土耳其|伊斯坦布尔",
+      "exclude": "(?i)(?:^|[^\\d\\.])(?:(?:[2-9]|\\d{2,})(?:\\.\\d+)?|1\\.[1-9]\\d*)\\s*(?:x|倍)|高倍",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "60m",
+      "idle_timeout": "60m",
+      "tolerance": 50
+    },
+    {
+      "type": "direct",
+      "tag": "🌐直连",
+      "domain_resolver": {
+        "server": "adgdns",
+        "strategy": "prefer_ipv6"
+      }
+    }
+  ]
+}

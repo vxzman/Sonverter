@@ -55,34 +55,84 @@ public class DaeConverter : BaseConverter
         ["MACAO"] = "mo",
     };
 
+    /// <summary>内置默认国家映射（代码/中英文 → 标准代码）。</summary>
+    private static readonly Dictionary<string, string> DefaultCountryMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["HK"] = "hk", ["HONGKONG"] = "hk", ["香港"] = "hk", ["中国香港"] = "hk",
+        ["JP"] = "jp", ["JAPAN"] = "jp", ["日本"] = "jp", ["东京"] = "jp", ["大阪"] = "jp",
+        ["TW"] = "tw", ["TAIWAN"] = "tw", ["台湾"] = "tw", ["中国台湾"] = "tw", ["台北"] = "tw",
+        ["SG"] = "sg", ["SINGAPORE"] = "sg", ["新加坡"] = "sg", ["狮城"] = "sg",
+        ["US"] = "us", ["USA"] = "us", ["AMERICA"] = "us", ["美国"] = "us", ["洛杉矶"] = "us", ["硅谷"] = "us",
+        ["KR"] = "kr", ["KOREA"] = "kr", ["韩国"] = "kr", ["首尔"] = "kr",
+        ["GB"] = "gb", ["UK"] = "gb", ["BRITAIN"] = "gb", ["ENGLAND"] = "gb", ["英国"] = "gb", ["伦敦"] = "gb",
+        ["DE"] = "de", ["GERMANY"] = "de", ["德国"] = "de", ["法兰克福"] = "de",
+        ["FR"] = "fr", ["FRANCE"] = "fr", ["法国"] = "fr", ["巴黎"] = "fr",
+        ["CA"] = "ca", ["CANADA"] = "ca", ["加拿大"] = "ca", ["温哥华"] = "ca", ["多伦多"] = "ca",
+        ["AU"] = "au", ["AUSTRALIA"] = "au", ["澳大利亚"] = "au", ["澳洲"] = "au", ["悉尼"] = "au",
+        ["TR"] = "tr", ["TURKEY"] = "tr", ["土耳其"] = "tr", ["伊斯坦布尔"] = "tr",
+        ["RU"] = "ru", ["RUSSIA"] = "ru", ["俄罗斯"] = "ru", ["莫斯科"] = "ru",
+        ["IN"] = "in", ["INDIA"] = "in", ["印度"] = "in",
+        ["MY"] = "my", ["MALAYSIA"] = "my", ["马来西亚"] = "my",
+        ["TH"] = "th", ["THAILAND"] = "th", ["泰国"] = "th",
+        ["VN"] = "vn", ["VIETNAM"] = "vn", ["越南"] = "vn",
+        ["PH"] = "ph", ["PHILIPPINES"] = "ph", ["菲律宾"] = "ph",
+        ["ID"] = "id", ["INDONESIA"] = "id", ["印尼"] = "id",
+        ["NL"] = "nl", ["NETHERLANDS"] = "nl", ["荷兰"] = "nl", ["阿姆斯特丹"] = "nl",
+        ["CH"] = "ch", ["SWITZERLAND"] = "ch", ["瑞士"] = "ch", ["苏黎世"] = "ch",
+        ["SE"] = "se", ["SWEDEN"] = "se", ["瑞典"] = "se",
+        ["NO"] = "no", ["NORWAY"] = "no", ["挪威"] = "no",
+        ["FI"] = "fi", ["FINLAND"] = "fi", ["芬兰"] = "fi",
+        ["IT"] = "it", ["ITALY"] = "it", ["意大利"] = "it", ["米兰"] = "it",
+        ["ES"] = "es", ["SPAIN"] = "es", ["西班牙"] = "es", ["马德里"] = "es",
+        ["BR"] = "br", ["BRAZIL"] = "br", ["巴西"] = "br",
+        ["AR"] = "ar", ["ARGENTINA"] = "ar", ["阿根廷"] = "ar",
+        ["MX"] = "mx", ["MEXICO"] = "mx", ["墨西哥"] = "mx",
+        ["AE"] = "ae", ["UAE"] = "ae", ["阿联酋"] = "ae", ["迪拜"] = "ae",
+        ["MO"] = "mo", ["MACAU"] = "mo", ["MACAO"] = "mo", ["澳门"] = "mo", ["中国澳门"] = "mo",
+    };
+
     /// <summary>英文国家代码（按长度降序匹配，长别名优先）。</summary>
     private readonly List<(string Key, string Code)> _countryKeys = new();
 
-    /// <summary>中文国家名（从 country_map 的标签提取，如 🇭🇰中国香港 → 中国香港/香港）。</summary>
+    /// <summary>中文国家名（从标签提取，如 🇭🇰中国香港 → 中国香港/香港）。</summary>
     private readonly List<(string Name, string Code)> _countryNames = new();
 
     public DaeConverter(JsonObject? config = null) : base(config)
     {
-        if (Config["country_map"] is not JsonObject countryMap)
-            return;
-
-        foreach (var (key, value) in countryMap)
+        // 1. 初始化内置映射
+        foreach (var (key, code) in DefaultCountryMap)
         {
-            if (value is not JsonValue v || !v.TryGetValue<string>(out var label))
-                continue;
+            if (key.All(char.IsAsciiLetter))
+            {
+                _countryKeys.Add((key, code));
+            }
+            else
+            {
+                AddCountryName(key, code);
+            }
+        }
 
-            var code = ToCountryCode(key);
-            if (code is null)
-                continue;
-            _countryKeys.Add((key, code));
+        // 2. 合并外部配置的 country_map（如有）
+        if (Config["country_map"] is JsonObject countryMap)
+        {
+            foreach (var (key, value) in countryMap)
+            {
+                if (value is not JsonValue v || !v.TryGetValue<string>(out var label))
+                    continue;
 
-            // 标签去掉 emoji 后是中文国家名，如 🇭🇰中国香港 → 中国香港、香港
-            var name = Regex.Replace(label, "[^一-鿿]", "");
-            if (name.Length == 0)
-                continue;
-            AddCountryName(name, code);
-            if (name.StartsWith("中国", StringComparison.Ordinal) && name.Length > 2)
-                AddCountryName(name[2..], code);
+                var code = ToCountryCode(key);
+                if (code is null)
+                    continue;
+                if (!_countryKeys.Any(x => x.Key.Equals(key, StringComparison.OrdinalIgnoreCase)))
+                    _countryKeys.Add((key, code));
+
+                var name = Regex.Replace(label, "[^一-鿿]", "");
+                if (name.Length == 0)
+                    continue;
+                AddCountryName(name, code);
+                if (name.StartsWith("中国", StringComparison.Ordinal) && name.Length > 2)
+                    AddCountryName(name[2..], code);
+            }
         }
 
         _countryKeys.Sort((a, b) => b.Key.Length.CompareTo(a.Key.Length));
@@ -172,11 +222,33 @@ public class DaeConverter : BaseConverter
         return candidate;
     }
 
+    /// <summary>预处理行：如果整个输入为单行 Base64 编码，则自动解码展开。</summary>
+    private static IEnumerable<string> PreprocessLines(IEnumerable<string> rawLines)
+    {
+        var list = rawLines.Select(l => l.Trim()).Where(l => l.Length > 0).ToList();
+        if (list.Count == 1 && !list[0].Contains("://"))
+        {
+            try
+            {
+                var bytes = System.Convert.FromBase64String(list[0]);
+                var decoded = Encoding.UTF8.GetString(bytes);
+                return decoded.Split(["\r\n", "\r", "\n"], StringSplitOptions.RemoveEmptyEntries);
+            }
+            catch
+            {
+                // 非 base64
+            }
+        }
+        return list;
+    }
+
     /// <summary>转换 URL 列表，返回 dae node 配置文本。</summary>
     public string ConvertLines(IEnumerable<string> lines)
     {
         var nodes = new List<(string Url, string Remark)>();
         var skipped = 0;
+
+        lines = PreprocessLines(lines);
 
         foreach (var raw in lines)
         {
@@ -186,7 +258,16 @@ public class DaeConverter : BaseConverter
 
             var hash = line.IndexOf('#');
             var url = (hash >= 0 ? line[..hash] : line).Trim();
-            var remark = hash >= 0 ? Uri.UnescapeDataString(line[(hash + 1)..].Trim()) : string.Empty;
+            string remark;
+            try
+            {
+                remark = hash >= 0 ? Uri.UnescapeDataString(line[(hash + 1)..].Trim()) : string.Empty;
+            }
+            catch
+            {
+                remark = hash >= 0 ? line[(hash + 1)..].Trim() : string.Empty;
+            }
+
             if (url.IndexOf("://", StringComparison.Ordinal) <= 0)
             {
                 skipped++;
@@ -196,7 +277,7 @@ public class DaeConverter : BaseConverter
         }
 
         if (skipped > 0)
-            Console.Error.WriteLine($"警告：跳过 {skipped} 行无法解析的订阅内容");
+            Log.Warn($"Skipped {skipped} unparsable lines");
 
         var usedTags = new HashSet<string>(StringComparer.Ordinal);
         var counters = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -238,16 +319,32 @@ public class DaeConverter : BaseConverter
         return ConvertLines(array.Select(x => x?.GetValue<string>() ?? string.Empty));
     }
 
-    /// <summary>转换文件：逐行读取订阅 URL，输出到 {输入文件名去掉扩展名}_converted.dae。</summary>
+    /// <summary>转换文件或 URL：逐行读取订阅 URL，输出到 {输入文件名去掉扩展名}_converted.dae。</summary>
     public override string ConvertFile(string inputPath, string? outputPath = null)
     {
-        var result = ConvertLines(File.ReadLines(inputPath, Encoding.UTF8));
+        var content = ReadInputText(inputPath);
+        var lines = content.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
+        var result = ConvertLines(lines);
 
-        var fullInput = Path.GetFullPath(inputPath);
-        var outPath = outputPath
-            ?? Path.Combine(
+        string outPath;
+        if (!string.IsNullOrWhiteSpace(outputPath))
+        {
+            outPath = outputPath;
+        }
+        else if (IsUrl(inputPath))
+        {
+            var uri = new Uri(inputPath);
+            var seg = uri.AbsolutePath.TrimEnd('/').Split('/').LastOrDefault();
+            var name = !string.IsNullOrWhiteSpace(seg) ? seg : Name;
+            outPath = Path.Combine(Directory.GetCurrentDirectory(), $"{name}_converted.dae");
+        }
+        else
+        {
+            var fullInput = Path.GetFullPath(inputPath);
+            outPath = Path.Combine(
                 Path.GetDirectoryName(fullInput)!,
                 $"{Path.GetFileNameWithoutExtension(fullInput)}_converted.dae");
+        }
 
         File.WriteAllText(outPath, result, new UTF8Encoding(false));
         return outPath;

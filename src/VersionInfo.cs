@@ -3,16 +3,30 @@ using System.Runtime.InteropServices;
 
 namespace Sonverter;
 
-/// <summary>应用版本与编译环境信息。</summary>
+/// <summary>应用构建日期与运行环境信息。</summary>
 public static class VersionInfo
 {
     public const string ProductName = "Sonverter";
 
-    public static string Version
-        => typeof(VersionInfo).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
+    public static string BuildDate
+    {
+        get
+        {
+            var meta = GetMetadata("BuildDate");
+            if (!string.IsNullOrEmpty(meta))
+                return meta;
 
-    public static string BuildTimestamp
-        => GetMetadata("BuildTimestamp") ?? "unknown";
+            var infoVersion = typeof(VersionInfo).Assembly
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            if (!string.IsNullOrEmpty(infoVersion))
+                return infoVersion.Split('+')[0];
+
+            return DateTime.UtcNow.ToString("yyyyMMdd1");
+        }
+    }
+
+    public static string Version => BuildDate;
+    public static string BuildTimestamp => BuildDate;
 
     public static string DotnetVersion
         => Environment.Version.ToString();
@@ -34,8 +48,7 @@ public static class VersionInfo
 
     public static void Print()
     {
-        Console.WriteLine($"{ProductName} {Version}");
-        Console.WriteLine($"Build time: {BuildTimestamp}");
+        Console.WriteLine($"{ProductName} ({BuildDate})");
         Console.WriteLine($".NET: {DotnetVersion}");
         Console.WriteLine($"Runtime: {Runtime}");
         Console.WriteLine($"Platform: {Platform}");

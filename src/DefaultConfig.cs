@@ -29,7 +29,7 @@ public static class DefaultConfig
         }
         catch (Exception e)
         {
-            Console.Error.WriteLine($"警告：配置文件加载失败 {configPath}: {e.Message}");
+            Log.Warn($"Failed to load config file {configPath}: {e.Message}");
             return defaults;
         }
     }

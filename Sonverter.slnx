@@ -1,5 +1,5 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/Sonverter/Sonverter.csproj" />
+    <Project Path="src/Sonverter.csproj" />
   </Folder>
 </Solution>

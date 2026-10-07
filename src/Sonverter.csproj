@@ -6,13 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Sonverter</RootNamespace>
     <AssemblyName>Sonverter</AssemblyName>
-    <!-- 版本遵循 SemVer：MAJOR.MINOR.PATCH。当前为首个稳定版本。 -->
-    <VersionPrefix>1.0.0</VersionPrefix>
-    <Version>$(VersionPrefix)</Version>
-    <AssemblyVersion>$(VersionPrefix)</AssemblyVersion>
-    <FileVersion>$(VersionPrefix)</FileVersion>
-    <InformationalVersion>$(VersionPrefix)</InformationalVersion>
-    <BuildTimestamp>$([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))</BuildTimestamp>
+    <!-- 嵌入构建日期（如 202609181），不再使用传统语义化版本号 -->
+    <BuildDate Condition="'$(BuildDate)' == ''">$([System.DateTime]::Now.ToString('yyyyMMdd1'))</BuildDate>
+    <InformationalVersion>$(BuildDate)</InformationalVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- Native AOT：固定时区/文化，减小体积并避免依赖 ICU -->
     <InvariantGlobalization>true</InvariantGlobalization>
@@ -20,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AssemblyMetadata Include="BuildTimestamp" Value="$(BuildTimestamp)" />
+    <AssemblyMetadata Include="BuildDate" Value="$(BuildDate)" />
     <EmbeddedResource Include="template.json" />
     <!-- 前端资源编译进二进制（单文件部署，不依赖外部 wwwroot 目录） -->
     <EmbeddedResource Include="wwwroot\**\*" />

@@ -22,6 +22,7 @@ web/dist/
 # IDE 与系统文件
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 .DS_Store
